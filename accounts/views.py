@@ -1,8 +1,9 @@
 import requests
+
 import json
 from django.shortcuts import redirect
 from django.conf import settings
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from json.decoder import JSONDecodeError
 from rest_framework import status
 from rest_framework.response import Response
@@ -12,6 +13,14 @@ from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from allauth.socialaccount.models import SocialAccount
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import User
+from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework_simplejwt.tokens import AccessToken
+from django.utils import timezone
+
+
+from rest_framework import viewsets
+from rest_framework import serializers
 
 BASE_URL = 'http://localhost:8000'
 KAKAO_CALLBACK_URI = BASE_URL + '/api/kakao/callback/'
@@ -43,14 +52,14 @@ def kakao_callback(request):
     if error is not None:
         return JsonResponse({'error': error}, status=status.HTTP_400_BAD_REQUEST)
     access_token = token_req_json.get('access_token')
-
+    
     # Get User Profile
     profile_request = requests.get(
         "https://kapi.kakao.com/v2/user/me",
         headers={"Authorization": f"Bearer {access_token}"}
     )
     profile_json = profile_request.json()
-    print(profile_json)
+
     #print(kakao_account)
     error = profile_json.get("error")
     if error is not None:
@@ -91,9 +100,27 @@ def kakao_callback(request):
         
     refresh_token = RefreshToken.for_user(user)
     access_token = str(refresh_token.access_token)
-    response_data = {
-            "message": "Login Susccess",
-            "access_token": access_token,
-            "refresh_token": str(refresh_token),
-        }
-    return JsonResponse(response_data)
+    response = HttpResponse(status=status.HTTP_200_OK)
+    response.set_cookie('access_token', access_token, httponly=True)
+    # response_data = {
+    #         "message": "Login Susccess",
+    #         "access_token": access_token,
+    #         "refresh_token": str(refresh_token),
+    #     }
+    print(accept.headers)
+    return response
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = "__all__"
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    @action(detail=False, methods=['GET'], permission_classes=[IsAuthenticated])
+    def current_user(self, request):
+        user_serializer = self.serializer_class(request.user)
+        return Response(user_serializer.data, status=status.HTTP_200_OK)
+    
