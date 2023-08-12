@@ -1,54 +1,89 @@
-import requests, json
+import requests, json, math
 from django.conf import settings
 from rest_framework import status
 
 from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes
-from .serializers import LocationSerializer, CafeSerializer
+from rest_framework.decorators import api_view, permission_classes, action
+from .serializers import *
 from rest_framework.permissions import AllowAny
 from .models import Store
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import mixins
 
 
-@api_view(['GET'])
-def get_nearby_cafes(request):
-    latitude = 37.55 #request.GET.get('latitude')
-    longitude = 126.98 #request.GET.get('longitude')
+class StoreViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin):
+
+    queryset = Store.objects.all()
+    serializer_class = StoreSerializer
+    permission_classes = [IsAuthenticated]
+
+    # 두 지점 간의 거리를 계산하는 함수
+    def calculate_distance(self, lat1, lon1, lat2, lon2):
+        # 위도와 경도를 라디안 단위로 변환
+        lat1_rad = math.radians(lat1)
+        lon1_rad = math.radians(lon1)
+        lat2_rad = math.radians(lat2)
+        lon2_rad = math.radians(lon2)
+
+        # 지구 반경 (미터)
+        R = 6371000
+
+        # 위도 및 경도 차이 계산
+        dlat = lat2_rad - lat1_rad
+        dlon = lon2_rad - lon1_rad
+
+        # Haversine 공식 계산
+        a = math.sin(dlat / 2) ** 2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(dlon / 2) ** 2
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+        distance = R * c
+
+        return distance
     
-    # Naver Map API URL for cafe search
-    naver_map_client_key = "CLIENT_KEY" 
-    naver_map_client_id = "CLIENT_ID"
-    # Replace with your actual Naver Map API key
-    #naver_map_url = f"https://naveropenapi.apigw.ntruss.com/map-place/v1/search?query=카페&coordinate={longitude},{latitude}&radius=500"
-    naver_map_url = f'https://map.naver.com/v5/search/%EC%B9%B4%ED%8E%98?c=16.04,0,0,0,dh'
-    # Send a GET request to Naver Map API for cafe search
-    headers = {
-        'X-NCP-APIGW-API-KEY-ID': naver_map_client_id,
-        'X-NCP-APIGW-API-KEY': naver_map_client_key,
-    }
-    response = requests.get(naver_map_url )#,headers=headers)
+    def get_queryset(self):
 
-    if response.status_code == 200:
-        data = response.json()
+        # user_latitude = request.GET.get('latitude')
+        # user_longitude = request.GET.get('longitude')
+        # 임시로 확인할 값. 추후 request로 받아올 예정
+        user_latitude = 37.4688345
+        user_longitude = 127.0412415
+        
+        stores = Store.objects.all()
 
-        # Extract cafe information from API responses
-        cafes = []
-        for place in data.get('places', []):
-            cafe = {
-                'name': place['name'],
-                'address': place['road_address'],
-            }
-            cafes.append(cafe)
+        nearby_stores = []  # 주변 가게들을 담을 리스트
 
-        return Response({'cafes': cafes})
-    else:
-        return Response({'error': 'Failed to fetch cafe information'}, status=response.status_code)
+        for store in stores:
+            store_latitude = float(store.latitude)
+            store_longitude = float(store.longitude)
 
-# @api_view(['POST'])
-# @permission_classes([AllowAny, ])
-# def putStore(request):
-#     data = request.data
-#     for cafe in data['카페 정보']:
-#         if cafe['name'] not in Store.objects.filter(name=cafe['name']):
-#             Store.objects.create(name=cafe['name'], type=cafe['cafe_type'], latitude=cafe['coordinates'][1], longitude=cafe['coordinates'][0])
+            distance = self.calculate_distance(user_latitude, user_longitude, store_latitude, store_longitude)
+            
+            if distance <= 500:
+                # 임시로 카페 기준으로만 500m 내의 가게들 불러옴. 베이커리, 아이스크림 기타 등등 존재. 식당은 아직 구현 X
+                if "카페" in store.type:
+                    nearby_stores.append(store)
 
-#     return Response({'success': 'success'})
+        queryset = nearby_stores[:20]
+        return queryset
+    
+    @api_view(['GET'])
+    def getStoreDetail(request):
+        store_id = request.GET.get('store_id')
+        store = Store.objects.get(store_id=store_id)
+        serializer = StoreSerializer(store)
+        return Response(serializer.data)
+    
+    @api_view(['GET'])
+    def getStoreMenu(request):
+        store_id = request.GET.get('store_id')
+        store = Store.objects.get(store_id=store_id)
+        menus = store.menus.all()
+        serializer = MenuSerializer(menus, many=True)
+        return Response(serializer.data)
+    
+    @api_view(['GET'])
+    def get_store(request):
+        store_id = request.GET.get('store_id')
+        store = Store.objects.get(store_id=store_id)
+        serializer = StoreSerializer(store)
+        return Response(serializer.data)

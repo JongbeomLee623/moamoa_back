@@ -1,6 +1,4 @@
 import requests
-
-import json
 from django.shortcuts import redirect
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse
@@ -17,13 +15,16 @@ from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import AccessToken
 from django.utils import timezone
+from main.models import Store
+from .serializers import UserSerializer
+import math
 
 
 from rest_framework import viewsets
 from rest_framework import serializers
 
 BASE_URL = 'http://localhost:8000'
-KAKAO_CALLBACK_URI = BASE_URL + '/api/kakao/callback/'
+KAKAO_CALLBACK_URI = BASE_URL + '/api/kakao/callback'
 
 
 class KakaoLogin(SocialLoginView):
@@ -80,7 +81,7 @@ def kakao_callback(request):
         
         data = {'access_token': access_token, 'code': code}
         accept = requests.post(
-            f"{BASE_URL}/api/kakao/login/finish/", data=data)
+            f"{BASE_URL}/api/kakao/login/finish", data=data)
         accept_status = accept.status_code
         if accept_status != 200:
             return JsonResponse({'err_msg': 'failed to signin'}, status=accept_status)
@@ -92,7 +93,7 @@ def kakao_callback(request):
 
         data = {'access_token': access_token, 'code': code}
         accept = requests.post(
-            f"{BASE_URL}/api/kakao/login/finish/", data=data)
+            f"{BASE_URL}/api/kakao/login/finish", data=data)
         accept_status = accept.status_code
 
         if accept_status != 200:
@@ -110,10 +111,6 @@ def kakao_callback(request):
     print(accept.headers)
     return response
 
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = "__all__"
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
