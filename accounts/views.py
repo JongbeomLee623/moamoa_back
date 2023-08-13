@@ -18,7 +18,10 @@ from django.utils import timezone
 from main.models import Store
 from .serializers import UserSerializer
 import math
-
+from rest_framework.views import APIView
+from django.contrib.auth import logout
+from main.serializers import *
+from main.models import *
 
 from rest_framework import viewsets
 from rest_framework import serializers
@@ -68,7 +71,7 @@ def kakao_callback(request):
     kakao_account = profile_json.get('kakao_account')
     profile = kakao_account.get('profile')
     nickname = profile.get('nickname')
-
+    image_url = profile.get('profile_image_url')
     user_id = "kakao_" + nickname + "_" + str(profile_json.get('id'))
 
     # Signup or Signin
@@ -89,6 +92,11 @@ def kakao_callback(request):
     except User.DoesNotExist:
         # 새로운 사용자의 경우
         user = User.objects.create_user(username=user_id, password=None)
+
+        user.nickname = nickname  # Set nickname
+        user.image_url = image_url  # Set image URL
+        user.save()
+
         social_user = SocialAccount.objects.create(user=user, provider='kakao', uid=str(profile_json.get('id')), extra_data=profile_json)
 
         data = {'access_token': access_token, 'code': code}
@@ -102,15 +110,34 @@ def kakao_callback(request):
     refresh_token = RefreshToken.for_user(user)
     access_token = str(refresh_token.access_token)
     response = HttpResponse(status=status.HTTP_200_OK)
+    
     response.set_cookie('access_token', access_token, httponly=True)
-    # response_data = {
-    #         "message": "Login Susccess",
-    #         "access_token": access_token,
-    #         "refresh_token": str(refresh_token),
-    #     }
-    print(accept.headers)
     return response
 
+class KakaoLogoutView(APIView):
+    def post(self, request):
+        # 카카오 토큰을 만료시키는 API 호출
+        # access_token = request.COOKIES.get('access_token')
+        # kakao_token = request.data.get('kakao_token')
+        rest_api_key = getattr(settings, 'KAKAO_APP_ADMIN_KEY')
+        if rest_api_key:
+            kakao_response = requests.post('https://kapi.kakao.com/v1/user/logout', headers={
+                'Authorization': f'KakaoAK {rest_api_key}'
+            }, data={
+                'target_id_type': 'user_id',
+                'target_id': request.user.socialaccount_set.get(provider='kakao').uid
+            })
+            if kakao_response.status_code == 200:
+                # 카카오 토큰 만료 성공
+                # headers의 cookie 에 담긴 access token 만료
+                response = HttpResponse(status=status.HTTP_200_OK)
+                response.delete_cookie('access_token')
+                logout(request)
+
+
+                return Response({'message': 'Logout successful.'}, status=status.HTTP_200_OK)
+        
+        return Response({'message': 'Invalid Kakao token.'}, status=status.HTTP_400_BAD_REQUEST)
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -121,3 +148,10 @@ class UserViewSet(viewsets.ModelViewSet):
         user_serializer = self.serializer_class(request.user)
         return Response(user_serializer.data, status=status.HTTP_200_OK)
     
+    @action(detail=False, methods=['GET'])
+    def get_user_scraps(self, request):
+        user = request.user
+        scraps = Scrap.objects.filter(user=user)
+        store_list = [scrap.store for scrap in scraps]
+        serializer = StoreSerializer(store_list, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
