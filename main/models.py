@@ -51,7 +51,7 @@ class Chat(models.Model):
 class Scrap(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     store = models.ForeignKey('Store', on_delete=models.CASCADE, related_name='scraps')
-    date_scraped = models.DateTimeField(default=timezone.now)
+    
 
     class Meta:
         unique_together = ('user', 'store')
