@@ -1,6 +1,9 @@
 from django.db import models
 from accounts.models import User
+<<<<<<< HEAD
 from django.utils import timezone
+=======
+>>>>>>> 30641ad (menu, review,  chat 쪼금)
 
 # Create your models here.
 
@@ -16,7 +19,8 @@ class Menu(models.Model):
     menu_id = models.AutoField(primary_key=True)
     store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='menus', blank=True, null=True)
     name = models.CharField(max_length=100)
-    price = models.IntegerField()
+    price = models.CharField(max_length=100)
+    #models.IntegerField()
 
 
 class Board(models.Model):
@@ -30,6 +34,7 @@ class Board(models.Model):
 class Review(models.Model):
     review_id = models.AutoField(primary_key=True)
     store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='reviews', blank=True, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reviews", null=True)
     content = models.TextField()
     image = models.CharField(max_length=100, blank=True, null=True)
     date = models.DateTimeField(auto_now_add=True)
@@ -37,6 +42,7 @@ class Review(models.Model):
 
 class Chat(models.Model):
     chat_id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reviews", null=True)
     store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='chats', blank=True, null=True)
     content = models.TextField()
     date = models.DateTimeField(auto_now_add=True)
