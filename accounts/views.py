@@ -26,7 +26,7 @@ from main.models import *
 from rest_framework import viewsets
 from rest_framework import serializers
 
-BASE_URL = 'http://localhost:8000'
+BASE_URL = 'http://127.0.0.1:8000'
 KAKAO_CALLBACK_URI = BASE_URL + '/api/kakao/callback'
 
 

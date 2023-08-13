@@ -17,7 +17,7 @@ class StoreViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Retrie
 
     queryset = Store.objects.all()
     serializer_class = StoreSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     # 두 지점 간의 거리를 계산하는 함수
     def calculate_distance(self, lat1, lon1, lat2, lon2):
@@ -93,10 +93,10 @@ class StoreViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Retrie
         except Scrap.DoesNotExist:
             return Response({'error': 'Store is not scrapped.'}, status=400)
     
-
-    def get_store_detail(request):
+    # @action(detail=False, methods=['GET'])
+    def get_store_detail(self, request):
         store_id = request.GET.get('store_id')
         queryset = Store.objects.filter(store_id=store_id)
         serializer = StoreSerializer(queryset)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
