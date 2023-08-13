@@ -22,6 +22,7 @@ class StoreSerializer(serializers.Serializer):
 
     # def get_ratings(self, obj):
     #     # function(avg of store.ratings.rating
+    
     class Meta:
         model = Store
         fields = "__all__"
@@ -32,10 +33,6 @@ class MenuSerializer(serializers.Serializer):
     store = serializers.IntegerField()
     name = serializers.CharField()
     price = serializers.IntegerField()
-
-<<<<<<< HEAD
-=======
-
 class ReviewSerializer(serializers.Serializer):
     review_id = serializers.IntegerField()
     #store = serializers.IntegerField()
@@ -106,4 +103,3 @@ class ChatSerializer(serializers.Serializer):
         instance.content = validated_data.get('content', instance.content)
         instance.save()
         return instance
->>>>>>> 30641ad (menu, review,  chat 쪼금)

@@ -1,9 +1,6 @@
 from django.db import models
 from accounts.models import User
-<<<<<<< HEAD
-from django.utils import timezone
-=======
->>>>>>> 30641ad (menu, review,  chat 쪼금)
+
 
 # Create your models here.
 
@@ -19,6 +16,8 @@ class Menu(models.Model):
     menu_id = models.AutoField(primary_key=True)
     store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='menus', blank=True, null=True)
     name = models.CharField(max_length=100)
+    price = models.CharField(max_length=100)
+    #models.IntegerField()
     price = models.CharField(max_length=100)
     #models.IntegerField()
 

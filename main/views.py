@@ -5,13 +5,10 @@ from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes, action
 from .serializers import *
+from .models import *
 from rest_framework.permissions import AllowAny
-<<<<<<< HEAD
 from .models import *
 from django.shortcuts import get_object_or_404
-=======
-from .models import Store, Menu, Review, Board
->>>>>>> 30641ad (menu, review,  chat 쪼금)
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import mixins
@@ -102,6 +99,21 @@ class StoreViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Retrie
         store_id = request.GET.get('store_id')
         queryset = Store.objects.filter(store_id=store_id)
         serializer = StoreSerializer(queryset)
+        return Response(serializer.data)
+    
+    @api_view(['GET'])
+    def getStoreMenu(request):
+        store_id = request.GET.get('store_id')
+        store = Store.objects.get(store_id=store_id)
+        menus = store.menus.all()
+        serializer = MenuSerializer(menus, many=True)
+        return Response(serializer.data)
+    
+    @api_view(['GET'])
+    def get_store(request):
+        store_id = request.GET.get('store_id')
+        store = Store.objects.get(store_id=store_id)
+        serializer = StoreSerializer(store)
         return Response(serializer.data)
 
 
@@ -405,4 +417,3 @@ def add_menus_to_cafe(request):
             Menu.objects.create(store=cafe, name=menu_name, price=menu_price)
 
     return Response({'success': 'success'}) 
-
