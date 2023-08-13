@@ -18,8 +18,7 @@ class Menu(models.Model):
     name = models.CharField(max_length=100)
     price = models.CharField(max_length=100)
     #models.IntegerField()
-    price = models.CharField(max_length=100)
-    #models.IntegerField()
+
 
 
 class Board(models.Model):
@@ -41,7 +40,7 @@ class Review(models.Model):
 
 class Chat(models.Model):
     chat_id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reviews", null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="chats", null=True)
     store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='chats', blank=True, null=True)
     content = models.TextField()
     date = models.DateTimeField(auto_now_add=True)
@@ -50,7 +49,6 @@ class Chat(models.Model):
 class Scrap(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     store = models.ForeignKey('Store', on_delete=models.CASCADE, related_name='scraps')
-    
 
     class Meta:
         unique_together = ('user', 'store')
