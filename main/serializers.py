@@ -33,7 +33,6 @@ class MenuSerializer(serializers.Serializer):
     store = serializers.IntegerField()
     name = serializers.CharField()
     price = serializers.IntegerField()
-
 class ReviewSerializer(serializers.Serializer):
     review_id = serializers.IntegerField()
     #store = serializers.IntegerField()

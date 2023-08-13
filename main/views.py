@@ -5,8 +5,10 @@ from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes, action
 from .serializers import *
+from .models import *
 from rest_framework.permissions import AllowAny
 from .models import *
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import mixins
@@ -16,7 +18,7 @@ class StoreViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Retrie
 
     queryset = Store.objects.all()
     serializer_class = StoreSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     # 두 지점 간의 거리를 계산하는 함수
     def calculate_distance(self, lat1, lon1, lat2, lon2):
@@ -92,8 +94,8 @@ class StoreViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Retrie
         except Scrap.DoesNotExist:
             return Response({'error': 'Store is not scrapped.'}, status=400)
     
-
-    def get_store_detail(request):
+    # @action(detail=False, methods=['GET'])
+    def get_store_detail(self, request):
         store_id = request.GET.get('store_id')
         queryset = Store.objects.filter(store_id=store_id)
         serializer = StoreSerializer(queryset)
