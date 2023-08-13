@@ -4,7 +4,7 @@ from rest_framework import routers
 from .views import StoreViewSet
 
 store_router = routers.DefaultRouter(trailing_slash=False)
-store_router.register('store', StoreViewSet)
+store_router.register('store', StoreViewSet, basename='store')
 
 
 urlpatterns = [

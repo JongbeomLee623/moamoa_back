@@ -22,7 +22,7 @@ class StoreSerializer(serializers.Serializer):
 
     # def get_ratings(self, obj):
     #     # function(avg of store.ratings.rating
-
+    
     class Meta:
         model = Store
         fields = "__all__"
@@ -33,7 +33,6 @@ class MenuSerializer(serializers.Serializer):
     store = serializers.IntegerField()
     name = serializers.CharField()
     price = serializers.IntegerField()
-
 
 class ReviewSerializer(serializers.Serializer):
     review_id = serializers.IntegerField()
