@@ -1,4 +1,6 @@
 from django.db import models
+from accounts.models import User
+from django.utils import timezone
 
 # Create your models here.
 
@@ -39,3 +41,11 @@ class Chat(models.Model):
     content = models.TextField()
     date = models.DateTimeField(auto_now_add=True)
     #consumers = models.ManyToManyField('Consumer', through='ChatConsumer')
+
+class Scrap(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    store = models.ForeignKey('Store', on_delete=models.CASCADE, related_name='scraps')
+    date_scraped = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        unique_together = ('user', 'store')

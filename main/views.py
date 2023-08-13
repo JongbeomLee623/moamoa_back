@@ -6,7 +6,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes, action
 from .serializers import *
 from rest_framework.permissions import AllowAny
-from .models import Store
+from .models import *
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import mixins
@@ -40,8 +41,8 @@ class StoreViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Retrie
 
         return distance
     
-    def get_queryset(self):
-
+    @action(detail=False, methods=['GET'])
+    def get_near_store(self, request):#,request):
         # user_latitude = request.GET.get('latitude')
         # user_longitude = request.GET.get('longitude')
         # 임시로 확인할 값. 추후 request로 받아올 예정
@@ -64,26 +65,38 @@ class StoreViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Retrie
                     nearby_stores.append(store)
 
         queryset = nearby_stores[:20]
-        return queryset
+        serializer = StoreSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
-    @api_view(['GET'])
-    def getStoreDetail(request):
+    @action(detail=True, methods=['POST'])
+    def scrap(self, request, pk=None):
+        store = get_object_or_404(Store, pk=pk)
+        user = request.user
+
+        scrap, created = Scrap.objects.get_or_create(user=user, store=store)
+        
+        if created:
+            return Response({'message': 'Store has been scrapped.'}, status=201)
+        else:
+            return Response({'message': 'Store is already scrapped.'}, status=200)
+        
+    
+    @action(detail=True, methods=['POST'])
+    def unscrap_store(self, request, pk=None):
+        store = get_object_or_404(Store, pk=pk)
+        user = request.user
+
+        try:
+            scrap = Scrap.objects.get(user=user, store=store)
+            scrap.delete()
+            return Response({'message': 'Store unscrapped successfully.'}, status=200)
+        except Scrap.DoesNotExist:
+            return Response({'error': 'Store is not scrapped.'}, status=400)
+    
+
+    def get_store_detail(request):
         store_id = request.GET.get('store_id')
-        store = Store.objects.get(store_id=store_id)
-        serializer = StoreSerializer(store)
+        queryset = Store.objects.filter(store_id=store_id)
+        serializer = StoreSerializer(queryset)
         return Response(serializer.data)
     
-    @api_view(['GET'])
-    def getStoreMenu(request):
-        store_id = request.GET.get('store_id')
-        store = Store.objects.get(store_id=store_id)
-        menus = store.menus.all()
-        serializer = MenuSerializer(menus, many=True)
-        return Response(serializer.data)
-    
-    @api_view(['GET'])
-    def get_store(request):
-        store_id = request.GET.get('store_id')
-        store = Store.objects.get(store_id=store_id)
-        serializer = StoreSerializer(store)
-        return Response(serializer.data)
