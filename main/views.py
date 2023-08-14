@@ -13,6 +13,63 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import mixins
 
+from django.http import HttpResponse
+from wordcloud import WordCloud, ImageColorGenerator
+import matplotlib.pyplot as plt
+import io
+from matplotlib import font_manager
+import numpy as np
+from PIL import Image
+import os
+import matplotlib
+matplotlib.use('Agg')
+import PIL
+
+
+def generate_wordcloud(request, store_id):
+
+    store = Store.objects.get(pk=store_id)
+    # Chat 모델에서 내용 가져오기 (예시로 최근 100개의 채팅 메시지 사용)
+    chat_messages = Chat.objects.filter(store=store)
+    
+    word_frequencies = {}  # 단어 빈도수 저장할 딕셔너리
+
+    excluded_words = ['ㅋㅋㅋ','ㅋㅋㅋㅋ','ㅋㅋㅋㅋㅋ', 'ㅎㅎ', 'ㅠㅠ', 'ㅅㅂ', '시발' ,'존나', '개', 'd']  # 원하는 단어들을 추가
+
+    # 채팅 내용에서 단어 빈도수 계산
+    for message in chat_messages:
+        words = message.content.split()  # 공백을 기준으로 단어 분리
+        for word in words:
+            if word not in excluded_words:
+                if word in word_frequencies:
+                    word_frequencies[word] += 1
+                else:
+                    word_frequencies[word] = 1
+
+    font_path = 'C:\\Windows\\Fonts\\malgun.ttf'
+
+    image_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'heart.png') 
+    icon = PIL.Image.open(image_path)
+    img = PIL.Image.new('RGB', icon.size, (255,255,255))
+    img.paste(icon, icon)
+    img = np.array(img)
+
+    # 단어 빈도수를 입력하여 워드클라우드 객체 생성
+    wordcloud = WordCloud(width=400, height=400, mask=img, max_font_size=200, background_color='white', font_path=font_path, prefer_horizontal = True).generate_from_frequencies(word_frequencies)
+    plt.figure(figsize=(6, 6))
+    plt.imshow(wordcloud, interpolation="bilinear")
+    plt.axis("off")
+    plt.tight_layout(pad=0)
+
+    # 이미지를 바이트 스트림으로 반환 (또는 이미지를 파일로 저장하여 경로를 반환)
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+
+    return HttpResponse(buf.getvalue(), content_type='image/png')
+
+
+
 
 class StoreViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin):
 
@@ -144,7 +201,7 @@ def chat_read_create(request, store_id):
 
     if request.method=='GET':
         chats = Chat.objects.filter(store=store)
-        serializer = BoardSerializer(chats, many=True)
+        serializer = ChatSerializer(chats, many=True)
         return Response(data=serializer.data)
     
     elif request.method == 'POST':
