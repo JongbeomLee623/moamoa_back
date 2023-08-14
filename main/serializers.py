@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from accounts.models import User
-from main.models import Store, Review, Board, Chat
+from main.models import Store, Review, Board, Chat, Scrap
 
 
 class LocationSerializer(serializers.Serializer):
@@ -110,3 +110,5 @@ class ChatSerializer(serializers.Serializer):
         instance.content = validated_data.get('content', instance.content)
         instance.save()
         return instance
+
+
