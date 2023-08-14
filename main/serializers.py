@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from accounts.models import User
-from main.models import Store, Review, Board, Chat
+from main.models import Store, Review, Board, Chat, Scrap
 
 
 class LocationSerializer(serializers.Serializer):
@@ -33,6 +33,7 @@ class MenuSerializer(serializers.Serializer):
     store = serializers.IntegerField()
     name = serializers.CharField()
     price = serializers.IntegerField()
+    
 class ReviewSerializer(serializers.Serializer):
     review_id = serializers.IntegerField()
     #store = serializers.IntegerField()
@@ -92,6 +93,12 @@ class ChatSerializer(serializers.Serializer):
     store = serializers.PrimaryKeyRelatedField(queryset=Store.objects.all())
     content = serializers.CharField()
     
+    def get_user(self, instance):
+            if instance.user is not None:
+                return instance.user.username
+            else:
+                return "UnKnown"
+
     def create(self, validated_data):
         return Chat.objects.create(**validated_data)
 
@@ -103,3 +110,5 @@ class ChatSerializer(serializers.Serializer):
         instance.content = validated_data.get('content', instance.content)
         instance.save()
         return instance
+
+
