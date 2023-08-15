@@ -27,8 +27,8 @@ from rest_framework import viewsets
 from rest_framework import serializers
 
 BASE_URL = 'http://127.0.0.1:8000'
-# KAKAO_CALLBACK_URI = BASE_URL + '/api/kakao/callback'
-KAKAO_CALLBACK_URI = 'http://localhost:5173/App/Mainpage'
+KAKAO_CALLBACK_URI = BASE_URL + '/api/kakao/callback'
+# KAKAO_CALLBACK_URI = 'http://localhost:5173/App/Mainpage'
 
 class KakaoLogin(SocialLoginView):
     adapter_class = kakao_view.KakaoOAuth2Adapter

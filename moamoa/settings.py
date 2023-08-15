@@ -192,3 +192,7 @@ ACCOUNT_EMAIL_VERIFICATION = 'none'
 #!--- CORS ---! 중요 #
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
+
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+# 사용자가 업로드한 파일을 모으는 곳
+MEDIA_URL = "/media/"
