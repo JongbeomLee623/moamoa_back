@@ -6,6 +6,8 @@ from main.models import Store, Review, Board, Chat, Scrap, Menu, Store_Image
 class StoreSerializer(serializers.ModelSerializer):
 
     images = serializers.SerializerMethodField()
+    ratings = serializers.SerializerMethodField()
+
     def get_images(self, instance):
         image = instance.image.all()
         return ImageSerializer(instance=image, many = True, context=self.context).data
@@ -28,10 +30,12 @@ class StoreSerializer(serializers.ModelSerializer):
         # Continue with the rest of the update logic
         return super().update(instance, validated_data)
     
+    def get_ratings(self, instance):
+        return instance.calculate_average_rating()
     
     class Meta:
         model = Store
-        fields = ['store_id','name','type','road_address','operation_time','store_num','store_other_data','images']
+        fields = ['store_id','name','type','road_address','operation_time','store_num','store_other_data','images','ratings']
         
 
 class ImageSerializer(serializers.ModelSerializer):
@@ -48,12 +52,15 @@ class MenuSerializer(serializers.Serializer):
     price = serializers.IntegerField()
     
 class ReviewSerializer(serializers.Serializer):
-    review_id = serializers.IntegerField()
+    #review_id = serializers.IntegerField()
     #store = serializers.IntegerField()
-    store = serializers.PrimaryKeyRelatedField(queryset=Store.objects.all())
+    #store = serializers.PrimaryKeyRelatedField(queryset=Store.objects.all())
     user = serializers.SerializerMethodField()
+    title = serializers.CharField()
     content = serializers.CharField()
-
+    image = serializers.ImageField(use_url=True, required=False)
+    rating = serializers.FloatField(allow_null=True, required=False)
+    
     def get_user(self, instance):
         if instance.user_id is not None:
             return instance.user.username
@@ -68,12 +75,20 @@ class ReviewSerializer(serializers.Serializer):
         instance.image = validated_data.get('image', instance.image)
         instance.rating = validated_data.get('rating', instance.rating)
         instance.save()
+        if instance.store:
+            instance.store.rating = instance.store.calculate_average_rating()
+            instance.store.save()
         return instance
 
     def delete(self, instance):
         instance.delete()
         return instance
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if 'rating' in data and data['rating'] is not None:
+            data['rating'] = f"{data['rating']:.1f}/5"  # 평점을 소수점 형식으로 표기
+        return data
 
     class Meta:
         model = Store
