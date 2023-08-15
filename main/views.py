@@ -135,7 +135,7 @@ class StoreViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Retrie
 # 리뷰 전체 리스트, 개별 확인, 수정, 삭제
 class ReviewViewSet(viewsets.GenericViewSet,
     mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, mixins.ListModelMixin):
-    queryset = Review.objects.all()
+    queryset = Review.objects.all().order_by('-updated_at')  # updated_at 필드를 기준으로 최신순 정렬
     serializer_class = ReviewSerializer
     permission_classes = [AllowAny]
 
@@ -174,7 +174,7 @@ class StoreReviewViewSet(viewsets.GenericViewSet,
 
     def get_queryset(self):
         store = self.kwargs.get("store_id")
-        queryset = Review.objects.filter(store_id = store)
+        queryset = Review.objects.filter(store_id = store).order_by('-updated_at')
         return queryset
 
     def perform_create(self, serializer):
@@ -296,13 +296,3 @@ def generate_wordcloud(request, store_id):
 
     return HttpResponse(buf.getvalue(), content_type='image/png')
 
-class create_menu(APIView):
-    def post(self, request, *args, **kwargs):
-        menu_data = request.data["menus"]
-        for item in menu_data:
-            store_id = int(item['store_id'])
-            store = Store.objects.get(pk=store_id)
-            name = item['name']
-            price = item['price']
-            Menu.objects.create(store=store, name=name, price=price)
-        return Response({"message": "Menus created successfully"}, status=status.HTTP_201_CREATED)
