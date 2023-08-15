@@ -34,8 +34,8 @@ class Store(models.Model):
 class Menu(models.Model):
     menu_id = models.AutoField(primary_key=True)
     store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='menus', blank=True, null=True)
-    name = models.CharField(max_length=100)
-    price = models.CharField(max_length=100)
+    name = models.CharField(max_length=255)
+    price = models.CharField(max_length=255)
     #models.IntegerField()
 
 class Store_Image(models.Model):
@@ -61,8 +61,6 @@ class Review(models.Model):
     rating = models.FloatField(blank=True, null=True, default=None)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-
 
 class Review_Image(models.Model):
     id = models.AutoField(primary_key=True)
