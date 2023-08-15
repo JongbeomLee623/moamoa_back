@@ -7,11 +7,9 @@ from rest_framework.decorators import api_view, permission_classes, action
 from .serializers import *
 from .models import *
 from rest_framework.permissions import AllowAny
-from .models import *
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets
+from rest_framework import viewsets, mixins
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import mixins
 
 from django.http import HttpResponse
 from wordcloud import WordCloud, ImageColorGenerator
@@ -58,12 +56,12 @@ def generate_wordcloud(request, store_id):
     wordcloud = WordCloud(width=400, height=400, mask=img, max_font_size=200, background_color='white', font_path=font_path, prefer_horizontal = True).generate_from_frequencies(word_frequencies)
 
 
-    image_file_path = os.path.join(settings.MEDIA_ROOT, f'chat/wordcloud_{store_id}.png')
+    image_file_path = os.path.join(settings.MEDIA_ROOT, f'{store_id}',f'/wordcloud_{store_id}.png')
     wordcloud.to_file(image_file_path)
 
         # 이미지 파일 경로 저장 또는 업데이트
     for chat in chat_messages:
-        chat.wordcloud_image_path =  f'chat/wordcloud_{store_id}.png'
+        chat.wordcloud_image_path =  f'{store_id}/wordcloud_{store_id}.png'
         chat.save()
     
     store.wordcloud = f'chat/wordcloud_{store_id}.png'
@@ -79,8 +77,6 @@ def generate_wordcloud(request, store_id):
     buf.seek(0)
 
     return HttpResponse(buf.getvalue(), content_type='image/png')
-
-
 
 
 class StoreViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin):
