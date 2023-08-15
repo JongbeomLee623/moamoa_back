@@ -202,6 +202,15 @@ class StoreReviewViewSet(viewsets.GenericViewSet,
             image_instance.save()
         
         return Response(serializer.data)
+    
+class ScrapedStoresListView(viewsets.GenericViewSet, mixins.ListModelMixin):
+    permission_classes = [IsAuthenticated]
+    serializer_class = StoreSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        scrapped_stores = Scrap.objects.filter(user=user).select_related('store')
+        return scrapped_stores.values_list('store', flat=True)
 
 @api_view(['GET', 'POST'])
 @permission_classes([AllowAny])

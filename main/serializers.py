@@ -8,9 +8,14 @@ class StoreSerializer(serializers.ModelSerializer):
     images = serializers.SerializerMethodField()
     ratings = serializers.SerializerMethodField()
     reviews = serializers.SerializerMethodField()
+    menus = serializers.SerializerMethodField()
 
     def get_reviews(self, instance):
         serializer = ReviewSerializer(instance=instance.reviews, many=True, context=self.context)
+        return serializer.data
+    
+    def get_menus(self, instance):
+        serializer = MenuSerializer(instance=instance.menus, many=True, context=self.context)
         return serializer.data
 
     def get_images(self, instance):
@@ -38,9 +43,22 @@ class StoreSerializer(serializers.ModelSerializer):
     def get_ratings(self, instance):
         return instance.calculate_average_rating()
     
+    def to_representation(self, instance):
+        if self.context.get('scraps_action'):
+            return {
+                'store_id': instance.store_id,
+                'name': instance.name,
+                'road_address': instance.road_address,
+                'operation_time': instance.operation_time,
+                'ratings': instance.calculate_average_rating(),
+                'images': ImageSerializer(instance.image.all().first()).data,
+            }
+        else:
+            return super().to_representation(instance)
+    
     class Meta:
         model = Store
-        fields = ['store_id','name','type','road_address','operation_time','store_num','store_other_data','images','ratings', 'reviews']
+        fields = ['store_id','name','type','road_address','operation_time','store_num','store_other_data','images','ratings','menus', 'reviews']
         
 
 class ImageSerializer(serializers.ModelSerializer):
@@ -50,11 +68,12 @@ class ImageSerializer(serializers.ModelSerializer):
         model = Store_Image
         fields = ['image']        
 
-class MenuSerializer(serializers.Serializer):
-    menu_id = serializers.IntegerField()
-    store = serializers.IntegerField()
-    name = serializers.CharField()
-    price = serializers.IntegerField()
+class MenuSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Menu
+        fields = ['name','price']
+
     
 class ReviewSerializer(serializers.ModelSerializer):
     images = serializers.SerializerMethodField()
@@ -117,6 +136,13 @@ class ReviewImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review_Image
         fields = ['image']    
+
+class ScrapSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Scrap
+        fields = ['store']
+        read_only_fields = '__all__'
 
 class BoardSerializer(serializers.Serializer):
     #board_id = serializers.IntegerField()

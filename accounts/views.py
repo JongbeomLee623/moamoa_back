@@ -149,9 +149,9 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(user_serializer.data, status=status.HTTP_200_OK)
     
     @action(detail=False, methods=['GET'])
-    def get_user_scraps(self, request):
+    def scraps(self, request):
         user = request.user
         scraps = Scrap.objects.filter(user=user)
         store_list = [scrap.store for scrap in scraps]
-        serializer = StoreSerializer(store_list, many=True)
+        serializer = StoreSerializer(store_list, many=True, context={'scraps_action': True})
         return Response(serializer.data, status=status.HTTP_200_OK)
