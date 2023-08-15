@@ -1,82 +1,25 @@
-import requests, json, math
+import math, io, os, matplotlib, PIL
 from django.conf import settings
-from rest_framework import status
 from django.shortcuts import get_object_or_404
-from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes, action
+from django.http import HttpResponse
+
 from .serializers import *
 from .models import *
 from rest_framework.permissions import AllowAny
-from django.shortcuts import get_object_or_404
-from rest_framework import viewsets, mixins
-from rest_framework.permissions import IsAuthenticated
 
-from django.http import HttpResponse
+from rest_framework import viewsets, mixins, status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.decorators import api_view, permission_classes, action
+
 from wordcloud import WordCloud, ImageColorGenerator
 import matplotlib.pyplot as plt
-import io
 from matplotlib import font_manager
+
 import numpy as np
 from PIL import Image
-import os
-import matplotlib
+
 matplotlib.use('Agg')
-import PIL
-
-
-def generate_wordcloud(request, store_id):
-
-    store = Store.objects.get(pk=store_id)
-    # Chat 모델에서 내용 가져오기 (예시로 최근 100개의 채팅 메시지 사용)
-    chat_messages = Chat.objects.filter(store=store)
-    
-    word_frequencies = {}  # 단어 빈도수 저장할 딕셔너리
-
-    excluded_words = ['ㅋㅋㅋ','ㅋㅋㅋㅋ','ㅋㅋㅋㅋㅋ', 'ㅎㅎ', 'ㅠㅠ', 'ㅅㅂ', '시발' ,'존나', '개', 'd']  # 원하는 단어들을 추가
-
-    # 채팅 내용에서 단어 빈도수 계산
-    for message in chat_messages:
-        words = message.content.split()  # 공백을 기준으로 단어 분리
-        for word in words:
-            if word not in excluded_words:
-                if word in word_frequencies:
-                    word_frequencies[word] += 1
-                else:
-                    word_frequencies[word] = 1
-
-    font_path = 'C:\\Windows\\Fonts\\malgun.ttf'
-
-    image_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'heart.png') 
-    icon = PIL.Image.open(image_path)
-    img = PIL.Image.new('RGB', icon.size, (255,255,255))
-    img.paste(icon, icon)
-    img = np.array(img)
-
-    # 단어 빈도수를 입력하여 워드클라우드 객체 생성
-    wordcloud = WordCloud(width=400, height=400, mask=img, max_font_size=200, background_color='white', font_path=font_path, prefer_horizontal = True).generate_from_frequencies(word_frequencies)
-
-
-    image_file_path = os.path.join(settings.MEDIA_ROOT, f'{store_id}',f'/wordcloud_{store_id}.png')
-    wordcloud.to_file(image_file_path)
-
-        # 이미지 파일 경로 저장 또는 업데이트
-    for chat in chat_messages:
-        chat.wordcloud_image_path =  f'{store_id}/wordcloud_{store_id}.png'
-        chat.save()
-    
-    store.wordcloud = f'chat/wordcloud_{store_id}.png'
-    store.save()
-
-    # 이미지를 바이트 스트림으로 반환 (또는 이미지를 파일로 저장하여 경로를 반환)
-    buf = io.BytesIO()
-    plt.figure(figsize=(6, 6))
-    plt.imshow(wordcloud, interpolation="bilinear")
-    plt.axis("off")
-    plt.tight_layout(pad=0)
-    plt.savefig(buf, format='png')
-    buf.seek(0)
-
-    return HttpResponse(buf.getvalue(), content_type='image/png')
 
 
 class StoreViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin):
@@ -185,11 +128,79 @@ class StoreViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Retrie
             image_instance = Store_Image.objects.create(store=instance, image=image_data)
             image_instance.save()
 
-        
-
         return super().perform_update(serializer)
-        
 
+
+# 리뷰 전체 리스트, 개별 확인, 수정, 삭제
+class ReviewViewSet(viewsets.GenericViewSet,
+    mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    permission_classes = [AllowAny]
+
+    def get_object(self):
+        obj = super().get_object()
+        return obj
+    
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+
+        images_data = request.FILES.getlist('images')
+
+        if(instance.image.all() is not None):
+            for image in instance.image.all():
+                file_path = os.path.join(settings.MEDIA_ROOT, str(image.image))
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                image.delete()
+
+        if images_data:
+            for image_data in images_data:
+                image_instance = Review_Image.objects.create(review=instance, image=image_data)
+                image_instance.save()
+
+        serializer.save()
+
+        return Response(serializer.data)
+
+# 가게에 달린 리뷰 리스트, 생성
+class StoreReviewViewSet(viewsets.GenericViewSet,
+    mixins.ListModelMixin, mixins.CreateModelMixin):
+    serializer_class = ReviewSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        store = self.kwargs.get("store_id")
+        queryset = Review.objects.filter(store_id = store)
+        return queryset
+
+    def perform_create(self, serializer):
+        store = get_object_or_404(Store, pk=self.kwargs.get("store_id"))
+        
+        images_data = self.request.FILES.getlist('image')
+        review = serializer.save(store=store, user=self.request.user)
+        
+        for image_data in images_data:
+            image_instance = Review_Image.objects.create(review=review, image=image_data)
+            image_instance.save()
+        
+        return Response(serializer.data)
+
+    def create(self, request, store_id=None):
+        store = get_object_or_404(Store, pk=store_id)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        images_data = request.FILES.getlist('images')
+        review = serializer.save(store=store, user=request.user)
+        
+        for image_data in images_data:
+            image_instance = Review_Image.objects.create(review=review, image=image_data)
+            image_instance.save()
+        
+        return Response(serializer.data)
 
 @api_view(['GET', 'POST'])
 @permission_classes([AllowAny])
@@ -230,51 +241,56 @@ def chat_read_create(request, store_id):
             return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET', 'POST'])
-@permission_classes([AllowAny])
-def review_read_create(request, store_id):
-    store = get_object_or_404(Store, store_id=store_id)
+def generate_wordcloud(request, store_id):
 
-    if request.method=='GET':
-        reviews = Review.objects.filter(store=store)
-        serializer = ReviewSerializer(reviews, many=True)
-        return Response(data=serializer.data)
+    store = Store.objects.get(pk=store_id)
+    # Chat 모델에서 내용 가져오기 (예시로 최근 100개의 채팅 메시지 사용)
+    chat_messages = Chat.objects.filter(store=store)
     
-    elif request.method == 'POST':
-        serializer = ReviewSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(store=store)
-            return Response(data=serializer.data)
-        else:
-            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    word_frequencies = {}  # 단어 빈도수 저장할 딕셔너리
+
+    excluded_words = ['ㅋㅋㅋ','ㅋㅋㅋㅋ','ㅋㅋㅋㅋㅋ', 'ㅎㅎ', 'ㅠㅠ', 'ㅅㅂ', '시발' ,'존나', '개', 'd']  # 원하는 단어들을 추가
+
+    # 채팅 내용에서 단어 빈도수 계산
+    for message in chat_messages:
+        words = message.content.split()  # 공백을 기준으로 단어 분리
+        for word in words:
+            if word not in excluded_words:
+                if word in word_frequencies:
+                    word_frequencies[word] += 1
+                else:
+                    word_frequencies[word] = 1
+
+    font_path = 'C:\\Windows\\Fonts\\malgun.ttf'
+
+    image_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'heart.png') 
+    icon = PIL.Image.open(image_path)
+    img = PIL.Image.new('RGB', icon.size, (255,255,255))
+    img.paste(icon, icon)
+    img = np.array(img)
+
+    # 단어 빈도수를 입력하여 워드클라우드 객체 생성
+    wordcloud = WordCloud(width=400, height=400, mask=img, max_font_size=200, background_color='white', font_path=font_path, prefer_horizontal = True).generate_from_frequencies(word_frequencies)
 
 
-@api_view(['GET', 'PATCH', 'DELETE'])
-@permission_classes([AllowAny])
-def review_detail_update_delete(request, store_id,review_id):
-    review = get_object_or_404(Review, review_id=review_id)
+    image_file_path = os.path.join(settings.MEDIA_ROOT, f'{store_id}',f'/wordcloud_{store_id}.png')
+    wordcloud.to_file(image_file_path)
 
-    if request.method=='GET':
-        serializer = ReviewSerializer(review)
-        return Response(serializer.data)
+        # 이미지 파일 경로 저장 또는 업데이트
+    for chat in chat_messages:
+        chat.wordcloud_image_path =  f'{store_id}/wordcloud_{store_id}.png'
+        chat.save()
     
-    elif request.method == 'PATCH':
-        serializer = ReviewSerializer(instance=review, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    elif request.method == 'DELETE':
-        review.delete()
-        data = {
-            'message': f'Review {review_id} has been deleted.'
-        }
-        return Response(data, status=status.HTTP_204_NO_CONTENT)
+    store.wordcloud = f'chat/wordcloud_{store_id}.png'
+    store.save()
 
+    # 이미지를 바이트 스트림으로 반환 (또는 이미지를 파일로 저장하여 경로를 반환)
+    buf = io.BytesIO()
+    plt.figure(figsize=(6, 6))
+    plt.imshow(wordcloud, interpolation="bilinear")
+    plt.axis("off")
+    plt.tight_layout(pad=0)
+    plt.savefig(buf, format='png')
+    buf.seek(0)
 
-
-# class ImageViewSet(viewsets.GenericViewSet, mixins.):
-#     queryset = Store_Image.objects.all()  # 이미지 모델에 맞게 수정하세요
-#     serializer_class = ImageSerializer
+    return HttpResponse(buf.getvalue(), content_type='image/png')
