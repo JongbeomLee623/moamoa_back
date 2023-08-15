@@ -51,14 +51,18 @@ class Board(models.Model):
     image = models.CharField(max_length=100, blank=True, null=True)
     date = models.DateTimeField(auto_now_add=True)
 
+
 class Review(models.Model):
     review_id = models.AutoField(primary_key=True)
     store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='reviews', blank=True, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reviews", null=True)
     title = models.CharField(max_length=100, default="Default Title")
     content = models.TextField()
-    date = models.DateTimeField(auto_now_add=True)
     rating = models.FloatField(blank=True, null=True, default=None)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
 
 class Review_Image(models.Model):
     id = models.AutoField(primary_key=True)

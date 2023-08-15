@@ -99,8 +99,8 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        fields = ['review_id','title','content','rating', 'images']
-        read_only_fields = ['review_id','store', 'user']
+        fields = ['review_id','title','content','rating', 'images', 'created_at', 'updated_at']
+        read_only_fields = ['review_id','store', 'user', 'created_at', 'updated_at']
 
 class ReviewImageSerializer(serializers.ModelSerializer):
     image = serializers.ImageField(use_url= True, required = False)
