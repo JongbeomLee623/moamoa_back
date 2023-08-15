@@ -1,8 +1,10 @@
 from django.db import models
 from accounts.models import User
 
-
 # Create your models here.
+def store_image_upload_path(instance, filename):
+    return f'{instance.store.store_id}/{filename}'
+
 
 class Store(models.Model):
     store_id = models.AutoField(primary_key=True)
@@ -10,7 +12,10 @@ class Store(models.Model):
     type = models.CharField(max_length=100)
     latitude = models.FloatField()
     longitude = models.FloatField()
-    image = models.CharField(max_length=100, blank=True, null=True)
+    road_address = models.CharField(max_length=255, blank=True, null=True)
+    operation_time = models.CharField(max_length=100, blank=True, null=True)
+    store_num = models.CharField(max_length=100, blank=True, null=True)
+    store_other_data = models.CharField(max_length=255, blank=True, null=True)
 
 class Menu(models.Model):
     menu_id = models.AutoField(primary_key=True)
@@ -19,7 +24,10 @@ class Menu(models.Model):
     price = models.CharField(max_length=100)
     #models.IntegerField()
 
-
+class Store_Image(models.Model):
+    id = models.AutoField(primary_key=True)
+    store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='image', blank=True, null=True)
+    image = models.ImageField(upload_to=store_image_upload_path, blank=True,null=True)
 
 class Board(models.Model):
     board_id = models.AutoField(primary_key=True)
