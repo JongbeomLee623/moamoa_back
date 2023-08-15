@@ -4,3 +4,9 @@ from .models import *
 
 admin.site.register(Review)
 admin.site.register(Chat)
+admin.site.register(Store)
+admin.site.register(Menu)
+admin.site.register(Store_Image)
+admin.site.register(Board)
+admin.site.register(Scrap)
+admin.site.register(Review_Image)

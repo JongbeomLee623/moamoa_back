@@ -6,7 +6,7 @@ from django.db.models import Avg
 
 # Create your models here.
 def image_upload_path(instance, filename):
-    return f'{instance.pk}/{filename}'
+    return f'reviews/{instance.pk}/{filename}'
 
 def store_image_upload_path(instance, filename):
     return f'{instance.store.store_id}/{filename}'
@@ -60,6 +60,11 @@ class Review(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     rating = models.FloatField(blank=True, null=True, default=None)
 
+class Review_Image(models.Model):
+    id = models.AutoField(primary_key=True)
+    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='image', blank=True, null=True)
+    image = models.ImageField(upload_to=image_upload_path, blank=True,null=True)
+
 class Chat(models.Model):
     chat_id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="chats", null=True)
@@ -67,7 +72,7 @@ class Chat(models.Model):
     content = models.TextField()
     date = models.DateTimeField(auto_now_add=True)
     wordcloud_image_path = models.CharField(max_length=255, null=True, blank=True)
-    wordcloud_image = models.ImageField(upload_to=image_upload_path, null=True, blank=True)
+    wordcloud_image = models.ImageField(upload_to=store_image_upload_path, null=True, blank=True)
     #consumers = models.ManyToManyField('Consumer', through='ChatConsumer')
 
 class Scrap(models.Model):
