@@ -7,6 +7,7 @@ from .serializers import *
 from .models import *
 from rest_framework.permissions import AllowAny
 
+from rest_framework.views import APIView
 from rest_framework import viewsets, mixins, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -294,3 +295,14 @@ def generate_wordcloud(request, store_id):
     buf.seek(0)
 
     return HttpResponse(buf.getvalue(), content_type='image/png')
+
+class create_menu(APIView):
+    def post(self, request, *args, **kwargs):
+        menu_data = request.data["menus"]
+        for item in menu_data:
+            store_id = int(item['store_id'])
+            store = Store.objects.get(pk=store_id)
+            name = item['name']
+            price = item['price']
+            Menu.objects.create(store=store, name=name, price=price)
+        return Response({"message": "Menus created successfully"}, status=status.HTTP_201_CREATED)
