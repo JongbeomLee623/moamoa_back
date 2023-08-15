@@ -62,8 +62,6 @@ class Review(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-
-
 class Review_Image(models.Model):
     id = models.AutoField(primary_key=True)
     review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='image', blank=True, null=True)
