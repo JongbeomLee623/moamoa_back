@@ -8,7 +8,7 @@ class StoreSerializer(serializers.ModelSerializer):
     images = serializers.SerializerMethodField()
     ratings = serializers.SerializerMethodField()
     reviews = serializers.SerializerMethodField()
-    
+
     def get_reviews(self, instance):
         serializer = ReviewSerializer(instance=instance.reviews, many=True, context=self.context)
         return serializer.data
@@ -108,7 +108,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        fields = ['review_id','store','username','content','rating', 'images', 'created_at', 'updated_at']
+        fields = ['review_id','title','store','username','content','rating', 'images', 'created_at', 'updated_at']
         read_only_fields = ['review_id','username','store', 'user', 'created_at', 'updated_at']
 
 class ReviewImageSerializer(serializers.ModelSerializer):
