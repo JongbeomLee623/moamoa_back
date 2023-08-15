@@ -56,13 +56,25 @@ def generate_wordcloud(request, store_id):
 
     # 단어 빈도수를 입력하여 워드클라우드 객체 생성
     wordcloud = WordCloud(width=400, height=400, mask=img, max_font_size=200, background_color='white', font_path=font_path, prefer_horizontal = True).generate_from_frequencies(word_frequencies)
+
+
+    image_file_path = os.path.join(settings.MEDIA_ROOT, f'chat/wordcloud_{store_id}.png')
+    wordcloud.to_file(image_file_path)
+
+        # 이미지 파일 경로 저장 또는 업데이트
+    for chat in chat_messages:
+        chat.wordcloud_image_path =  f'chat/wordcloud_{store_id}.png'
+        chat.save()
+    
+    store.wordcloud = f'chat/wordcloud_{store_id}.png'
+    store.save()
+
+    # 이미지를 바이트 스트림으로 반환 (또는 이미지를 파일로 저장하여 경로를 반환)
+    buf = io.BytesIO()
     plt.figure(figsize=(6, 6))
     plt.imshow(wordcloud, interpolation="bilinear")
     plt.axis("off")
     plt.tight_layout(pad=0)
-
-    # 이미지를 바이트 스트림으로 반환 (또는 이미지를 파일로 저장하여 경로를 반환)
-    buf = io.BytesIO()
     plt.savefig(buf, format='png')
     buf.seek(0)
 
@@ -213,7 +225,6 @@ def chat_read_create(request, store_id):
             return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 @api_view(['GET', 'POST'])
 @permission_classes([AllowAny])
 def review_read_create(request, store_id):
@@ -227,27 +238,7 @@ def review_read_create(request, store_id):
     elif request.method == 'POST':
         serializer = ReviewSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response(data=serializer.data)
-        else:
-            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-
-@api_view(['GET', 'POST'])
-@permission_classes([AllowAny])
-def review_read_create(request, store_id):
-    store = get_object_or_404(Store, store_id=store_id)
-
-    if request.method=='GET':
-        reviews = Review.objects.filter(store=store)
-        serializer = ReviewSerializer(reviews, many=True)
-        return Response(data=serializer.data)
-    
-    elif request.method == 'POST':
-        serializer = ReviewSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
+            serializer.save(store=store)
             return Response(data=serializer.data)
         else:
             return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -263,15 +254,17 @@ def review_detail_update_delete(request, store_id,review_id):
         return Response(serializer.data)
     
     elif request.method == 'PATCH':
-        serializer = ReviewSerializer(instance=review, data=request.data)
+        serializer = ReviewSerializer(instance=review, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-        return Response(serializer.data)
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     elif request.method == 'DELETE':
         review.delete()
         data = {
-            'deleted_review':review_id
+            'message': f'Review {review_id} has been deleted.'
         }
         return Response(data, status=status.HTTP_204_NO_CONTENT)
 

@@ -7,3 +7,4 @@ pip install requests
 pip install geopy
 pip install django-cors-headers
 pip install wordcloud
+pip install pillow
