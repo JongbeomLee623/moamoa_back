@@ -1,34 +1,49 @@
 from rest_framework import serializers
 from accounts.models import User
-from main.models import Store, Review, Board, Chat, Scrap
+from main.models import Store, Review, Board, Chat, Scrap, Menu, Store_Image
 
 
-class LocationSerializer(serializers.Serializer):
-    latitude = serializers.FloatField()
-    longitude = serializers.FloatField()
+class StoreSerializer(serializers.ModelSerializer):
 
-class CafeSerializer(serializers.Serializer):
-    name = serializers.CharField()
-    address = serializers.CharField()
-
-class StoreSerializer(serializers.Serializer):
-    store_id = serializers.IntegerField()
-    name = serializers.CharField()
-    type = serializers.CharField()
-    latitude = serializers.FloatField()
-    longitude = serializers.FloatField()
+    images = serializers.SerializerMethodField()
     ratings = serializers.SerializerMethodField()
 
-    # def get_ratings(self, obj):
-    #     # function(avg of store.ratings.rating
+    def get_images(self, instance):
+        image = instance.image.all()
+        return ImageSerializer(instance=image, many = True, context=self.context).data
+    
+    def update(self, instance, validated_data):
+        images_data = validated_data.pop('images', None)
+        
+        if images_data:
+            for image_data in images_data:
+                image_id = image_data.get('id', None)
+                if image_id:
+                    image_instance = instance.image.get(id=image_id)
+                    image_serializer = ImageSerializer(instance=image_instance, data=image_data)
+                    if image_serializer.is_valid():
+                        image_serializer.save()
+                else:
+                    # Create a new image instance
+                    ImageSerializer(data=image_data, context=self.context).save(store=instance)
+        
+        # Continue with the rest of the update logic
+        return super().update(instance, validated_data)
+    
     def get_ratings(self, instance):
         return instance.calculate_average_rating()
     
-       
     class Meta:
         model = Store
-        fields = "__all__"
-        read_only_fields = ('store_id', 'name', 'type', 'latitude', 'longitude', 'rating')
+        fields = ['store_id','name','type','road_address','operation_time','store_num','store_other_data','images','ratings']
+        
+
+class ImageSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField(use_url= True, required = False)
+    
+    class Meta:
+        model = Store_Image
+        fields = ['image']        
 
 class MenuSerializer(serializers.Serializer):
     menu_id = serializers.IntegerField()
@@ -47,7 +62,7 @@ class ReviewSerializer(serializers.Serializer):
     rating = serializers.FloatField(allow_null=True, required=False)
     
     def get_user(self, instance):
-        if instance.user is not None:
+        if instance.user_id is not None:
             return instance.user.username
         else:
             return "UnKnown"

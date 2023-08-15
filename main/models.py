@@ -8,6 +8,10 @@ from django.db.models import Avg
 def image_upload_path(instance, filename):
     return f'{instance.pk}/{filename}'
 
+def store_image_upload_path(instance, filename):
+    return f'{instance.store.store_id}/{filename}'
+
+
 
 class Store(models.Model):
     store_id = models.AutoField(primary_key=True)
@@ -15,6 +19,10 @@ class Store(models.Model):
     type = models.CharField(max_length=100)
     latitude = models.FloatField()
     longitude = models.FloatField()
+    road_address = models.CharField(max_length=255, blank=True, null=True)
+    operation_time = models.CharField(max_length=100, blank=True, null=True)
+    store_num = models.CharField(max_length=100, blank=True, null=True)
+    store_other_data = models.CharField(max_length=255, blank=True, null=True)
     image = models.CharField(max_length=100, blank=True, null=True)
    
     def calculate_average_rating(self):
@@ -24,6 +32,9 @@ class Store(models.Model):
         return avg_rating
 
 
+    
+
+
 class Menu(models.Model):
     menu_id = models.AutoField(primary_key=True)
     store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='menus', blank=True, null=True)
@@ -31,6 +42,10 @@ class Menu(models.Model):
     price = models.CharField(max_length=100)
     #models.IntegerField()
 
+class Store_Image(models.Model):
+    id = models.AutoField(primary_key=True)
+    store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='image', blank=True, null=True)
+    image = models.ImageField(upload_to=store_image_upload_path, blank=True,null=True)
 
 class Board(models.Model):
     board_id = models.AutoField(primary_key=True)
@@ -57,7 +72,7 @@ class Chat(models.Model):
     content = models.TextField()
     date = models.DateTimeField(auto_now_add=True)
     wordcloud_image_path = models.CharField(max_length=255, null=True, blank=True)
-    wordcloud_image = models.ImageField(upload_to='chat', null=True, blank=True)
+    wordcloud_image = models.ImageField(upload_to='chat/', null=True, blank=True)
     #consumers = models.ManyToManyField('Consumer', through='ChatConsumer')
 
 class Scrap(models.Model):
