@@ -30,9 +30,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-CORS_ORIGIN_WHITELIST = [
+CORS_ALLOWED_ORIGINS = [
     #'http://192.168.1.9:8000',
     'http://127.0.0.1:8000',
+    'http://127.0.0.1:5173',
     'http://localhost:5173',
 ]
 
@@ -152,12 +153,19 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_AUTH = {
+    # 'USE_JWT' : True,
+    # 'JWT_AUTH_HTTPONLY': True,
+    # 'JWT_AUTH_REFRESH_COOKIE' : "refresh_token",
+    # # 'JWT_AUTH_SAMESITE': 'None',
+    # 'JWT_AUTH_COOKIE_USE_CSRF' : False,
+    # 'SESSION_LOGIN' : False
+    
     'USE_JWT' : True,
     'JWT_AUTH_HTTPONLY': True,
     'JWT_AUTH_REFRESH_COOKIE' : "refresh_token",
-    'JWT_AUTH_SAMESITE': 'Lax',
-    'JWT_AUTH_COOKIE_USE_CSRF' : False,
+    'JWT_AUTH_COOKIE_USE_CSRF' : True,
     'SESSION_LOGIN' : False
+
 }
 
 REST_FRAMEWORK = {
@@ -180,6 +188,7 @@ SIMPLE_JWT = {
 
 }
 
+
 SITE_ID = 1
 REST_USE_JWT = True
 ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'
@@ -190,7 +199,7 @@ ACCOUNT_AUTHENTICATION_METHOD = 'username'
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 
 #!--- CORS ---! 중요 #
-CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")

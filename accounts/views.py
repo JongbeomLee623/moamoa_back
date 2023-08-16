@@ -2,7 +2,6 @@ import requests
 from django.shortcuts import redirect
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse
-from json.decoder import JSONDecodeError
 from rest_framework import status
 from rest_framework.response import Response
 from dj_rest_auth.registration.views import SocialLoginView
@@ -26,6 +25,9 @@ from main.models import *
 from rest_framework import viewsets
 from rest_framework import serializers
 
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponseRedirect
+
 BASE_URL = 'http://127.0.0.1:8000'
 KAKAO_CALLBACK_URI = BASE_URL + '/api/kakao/callback'
 # KAKAO_CALLBACK_URI = 'http://localhost:5173/App/Mainpage'
@@ -35,6 +37,8 @@ class KakaoLogin(SocialLoginView):
     client_class = OAuth2Client
     callback_url = KAKAO_CALLBACK_URI
 
+
+@csrf_exempt
 def kakao_login(request):
     rest_api_key = getattr(settings, 'KAKAO_REST_API_KEY')
     return redirect(
@@ -109,9 +113,11 @@ def kakao_callback(request):
         
     refresh_token = RefreshToken.for_user(user)
     access_token = str(refresh_token.access_token)
-    response = HttpResponse(status=status.HTTP_200_OK)
     
-    response.set_cookie('access_token', access_token, httponly=True)
+    frontend_redirect_uri = 'http://127.0.0.1:5173/App/Mainpage'
+    response = redirect(frontend_redirect_uri)
+    response.set_cookie('access_token', access_token, max_age=3600, httponly=True)
+    
     return response
 
 class KakaoLogoutView(APIView):
