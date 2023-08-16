@@ -2,6 +2,7 @@ from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import User
 from main.serializers import *
+from main.models import *
 
 class CustomTokenRefreshSerializer(serializers.Serializer):
     refresh_token = serializers.CharField()
@@ -13,12 +14,12 @@ class CustomTokenRefreshSerializer(serializers.Serializer):
         return data
     
 class UserSerializer(serializers.ModelSerializer):
-    reviews = serializers.SerializerMethodField()
+    # reviews = serializers.SerializerMethodField()
 
-    def get_reviews(self, obj):
-        reviews = obj.reviews.filter(user=obj)
-        serializer = ReviewSerializer(reviews, many=True)
-        return serializer.data
+    # def get_reviews(self, instacnce):
+    #     reviews = Review.object.filter(user=instacnce)
+    #     serializer = ReviewSerializer(reviews, many=True)
+    #     return serializer.data
 
     class Meta:
         model = User
