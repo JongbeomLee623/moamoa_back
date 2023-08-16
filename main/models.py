@@ -28,6 +28,7 @@ class Store(models.Model):
         reviews = self.reviews.all()
         total_rating = sum(review.rating for review in reviews if review.rating is not None)
         avg_rating = total_rating / len(reviews) if len(reviews) > 0 else None
+        avg_rating_rounded = round(avg_rating, 1) if avg_rating is not None else None
         return avg_rating
 
 

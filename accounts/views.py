@@ -10,7 +10,7 @@ from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from allauth.socialaccount.models import SocialAccount
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import User
-from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework.decorators import api_view, permission_classes, action, authentication_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import AccessToken
 from django.utils import timezone
@@ -122,29 +122,50 @@ def kakao_callback(request):
     
     return response
 
+# class KakaoLogoutView(APIView):
+#     def post(self, request):
+#         # 카카오 토큰을 만료시키는 API 호출
+#         # access_token = request.COOKIES.get('access_token')
+#         # kakao_token = request.data.get('kakao_token')
+#         rest_api_key = getattr(settings, 'KAKAO_APP_ADMIN_KEY')
+#         if rest_api_key:
+#             kakao_response = requests.post('https://kapi.kakao.com/v1/user/logout', headers={
+#                 'Authorization': f'KakaoAK {rest_api_key}'
+#             }, data={
+#                 'target_id_type': 'user_id',
+#                 'target_id': request.user.socialaccount_set.get(provider='kakao').uid
+#             })
+#             if kakao_response.status_code == 200:
+#                 # 카카오 토큰 만료 성공
+#                 # headers의 cookie 에 담긴 access token 만료
+#                 response = HttpResponse(status=status.HTTP_200_OK)
+#                 response.delete_cookie('access_token')
+#                 logout(request)
+
+
+#                 return Response({'message': 'Logout successful.'}, status=status.HTTP_200_OK)
+        
+#         return Response({'message': 'Invalid Kakao token.'}, status=status.HTTP_400_BAD_REQUEST)
+
 class KakaoLogoutView(APIView):
     def post(self, request):
-        # 카카오 토큰을 만료시키는 API 호출
-        # access_token = request.COOKIES.get('access_token')
-        # kakao_token = request.data.get('kakao_token')
         rest_api_key = getattr(settings, 'KAKAO_APP_ADMIN_KEY')
         if rest_api_key:
-            kakao_response = requests.post('https://kapi.kakao.com/v1/user/logout', headers={
-                'Authorization': f'KakaoAK {rest_api_key}'
-            }, data={
-                'target_id_type': 'user_id',
-                'target_id': request.user.socialaccount_set.get(provider='kakao').uid
-            })
-            if kakao_response.status_code == 200:
-                # 카카오 토큰 만료 성공
-                # headers의 cookie 에 담긴 access token 만료
-                response = HttpResponse(status=status.HTTP_200_OK)
-                response.delete_cookie('access_token')
-                logout(request)
-
-
-                return Response({'message': 'Logout successful.'}, status=status.HTTP_200_OK)
-        
+            user = request.user
+            if user:
+                kakao_uid = user.socialaccount_set.get(provider='kakao').uid
+                print(kakao_uid)
+                kakao_response = requests.post('https://kapi.kakao.com/v1/user/logout', headers={
+                    'Authorization': f'KakaoAK {rest_api_key}'
+                }, data={
+                    'target_id_type': 'user_id',
+                    'target_id': kakao_uid
+                })
+                if kakao_response.status_code == 200:
+                    # 카카오 토큰 만료 성공
+                    response = Response({'message': 'Kakao logout successful.'}, status=status.HTTP_200_OK)
+                    response.delete_cookie('access_token')
+                    return response
         return Response({'message': 'Invalid Kakao token.'}, status=status.HTTP_400_BAD_REQUEST)
 
 class UserViewSet(viewsets.ModelViewSet):

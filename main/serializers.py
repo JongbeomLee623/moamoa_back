@@ -9,6 +9,7 @@ class StoreSerializer(serializers.ModelSerializer):
     ratings = serializers.SerializerMethodField()
     reviews = serializers.SerializerMethodField()
     menus = serializers.SerializerMethodField()
+    boards = serializers.SerializerMethodField()
 
     def get_reviews(self, instance):
         serializer = ReviewSerializer(instance=instance.reviews, many=True, context=self.context)
@@ -21,6 +22,10 @@ class StoreSerializer(serializers.ModelSerializer):
     def get_images(self, instance):
         image = instance.image.all()
         return ImageSerializer(instance=image, many = True, context=self.context).data
+    
+    def get_boards(self, instance):
+        board = instance.boards.all()
+        return BoardSerializer(instance=board, many = True, context=self.context).data
     
     def update(self, instance, validated_data):
         images_data = validated_data.pop('images', None)
@@ -51,6 +56,7 @@ class StoreSerializer(serializers.ModelSerializer):
                 'road_address': instance.road_address,
                 'operation_time': instance.operation_time,
                 'ratings': instance.calculate_average_rating(),
+                'store_num' : instance.store_num,
                 'images': ImageSerializer(instance.image.all().first()).data,
             }
         else:
@@ -58,7 +64,7 @@ class StoreSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Store
-        fields = ['store_id','name','type','road_address','operation_time','store_num','store_other_data','images','ratings','menus', 'reviews']
+        fields = ['store_id','name','type','road_address','operation_time','store_num','store_other_data','boards','images','ratings','menus', 'reviews']
         
 
 class ImageSerializer(serializers.ModelSerializer):
@@ -143,30 +149,23 @@ class ReviewImageSerializer(serializers.ModelSerializer):
         model = Review_Image
         fields = ['image']    
 
-class ScrapSerializer(serializers.ModelSerializer):
-    
-    class Meta:
-        model = Scrap
-        fields = ['store']
-        read_only_fields = '__all__'
-
-class BoardSerializer(serializers.Serializer):
+class BoardSerializer(serializers.ModelSerializer):
     #board_id = serializers.IntegerField()
     #store = serializers.IntegerField()
-    store = serializers.PrimaryKeyRelatedField(queryset=Store.objects.all())
-    content = serializers.CharField()
+    # store = serializers.PrimaryKeyRelatedField(queryset=Store.objects.all())
+    # content = serializers.CharField()
     
     def create(self, validated_data):
-        return Board.objects.create(**validated_data)
-
-    class Meta:
-        model = Store
-        fields = "__all__"
+        return Board.objects.create(**validated_data)    
 
     def update(self, instance, validated_data):
         instance.content = validated_data.get('content', instance.content)
         instance.save()
         return instance
+    
+    class Meta:
+        model = Board
+        fields = ['content','date']
     
 class ChatSerializer(serializers.Serializer):
     #chat_id = serializers.IntegerField()
