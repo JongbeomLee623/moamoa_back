@@ -29,7 +29,7 @@ class StoreViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Retrie
     queryset = Store.objects.all()
     serializer_class = StoreSerializer
     authentication_classes = [CookieAuthentication]  # CookieAuthentication 적용
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     # 두 지점 간의 거리를 계산하는 함수
     def calculate_distance(self, lat1, lon1, lat2, lon2):
@@ -94,7 +94,7 @@ class StoreViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Retrie
         
     
     @action(detail=True, methods=['POST'])
-    def unscrap_store(self, request, pk=None):
+    def unscrap(self, request, pk=None):
         store = get_object_or_404(Store, pk=pk)
         user = request.user
 
