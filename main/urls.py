@@ -27,4 +27,4 @@ urlpatterns = [
     path('', include(scrap_router.urls)),
     path('store/<int:store_id>/', include(store_review_router.urls)),
 
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]
