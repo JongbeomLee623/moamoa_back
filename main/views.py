@@ -239,24 +239,46 @@ def board_read_create(request, store_id):
 
 
 
-@api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])
-@authentication_classes([CookieAuthentication])
-def chat_read_create(request, store_id):
-    store = get_object_or_404(Store, store_id=store_id)
+# @api_view(['GET', 'POST'])
+# @permission_classes([IsAuthenticated])
+# @authentication_classes([CookieAuthentication])
+# def chat_read_create(request, store_id):
+#     store = get_object_or_404(Store, store_id=store_id)
 
-    if request.method=='GET':
-        chats = Chat.objects.filter(store=store)
-        serializer = ChatSerializer(chats, many=True)
-        return Response(data=serializer.data)
+#     if request.method=='GET':
+#         chats = Chat.objects.filter(store=store)
+#         serializer = ChatSerializer(chats, many=True)
+#         return Response(data=serializer.data)
     
-    elif request.method == 'POST':
-        serializer = ChatSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(data=serializer.data)
-        else:
-            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#     elif request.method == 'POST':
+#         serializer = ChatSerializer(data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(data=serializer.data)
+#         else:
+#             return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+class StoreChatViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.ListModelMixin):
+    serializer_class = ChatSerializer
+    authentication_classes = [CookieAuthentication]  # CookieAuthentication 적용
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        store = self.kwargs.get("store_id")
+        queryset = Chat.objects.filter(store = store).order_by('date')
+        return queryset
+
+    def perform_create(self, serializer):
+        store = get_object_or_404(Store, pk=self.kwargs.get("store_id"))
+        serializer.save(store=store, user=self.request.user)
+
+    def create(self, request, store_id=None):
+        store = get_object_or_404(Store, pk=store_id)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(store=store, user=request.user)
+        return Response(serializer.data)
+
 
 
 def generate_wordcloud(request, store_id):

@@ -167,29 +167,26 @@ class BoardSerializer(serializers.ModelSerializer):
         model = Board
         fields = ['content','date']
     
-class ChatSerializer(serializers.Serializer):
-    #chat_id = serializers.IntegerField()
-    #store = serializers.IntegerField()
+class ChatSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
-    store = serializers.PrimaryKeyRelatedField(queryset=Store.objects.all())
-    content = serializers.CharField()
     
     def get_user(self, instance):
             if instance.user is not None:
-                return instance.user.username
+                return instance.user.nickname
             else:
                 return "UnKnown"
 
-    def create(self, validated_data):
-        return Chat.objects.create(**validated_data)
+    # def create(self, validated_data):
+    #     return Chat.objects.create(**validated_data)
 
+    
+    # def update(self, instance, validated_data):
+    #     instance.content = validated_data.get('content', instance.content)
+    #     instance.save()
+    #     return instance
+    
     class Meta:
-        model = Store
-        fields = "__all__"
-
-    def update(self, instance, validated_data):
-        instance.content = validated_data.get('content', instance.content)
-        instance.save()
-        return instance
-
+        model = Chat
+        fields = ['user', 'content','date']
+        read_only_fields = ['user', 'store_id', 'created_at', 'updated_at', 'chat_id']
 
