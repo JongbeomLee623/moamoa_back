@@ -155,3 +155,10 @@ class UserViewSet(viewsets.ModelViewSet):
         store_list = [scrap.store for scrap in scraps]
         serializer = StoreSerializer(store_list, many=True, context={'scraps_action': True})
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['GET'])
+    def my_reviews(self, request):
+        user = request.user
+        reviews = Review.objects.filter(user=user)
+        serializer = ReviewSerializer(reviews, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
