@@ -6,7 +6,6 @@ from django.http import HttpResponse
 from .serializers import *
 from .models import *
 from accounts.authentication import CookieAuthentication
-from rest_framework.permissions import AllowAny
 
 from rest_framework.views import APIView
 from rest_framework import viewsets, mixins, status
@@ -257,7 +256,6 @@ def board_read_create(request, store_id):
 #             return Response(data=serializer.data)
 #         else:
 #             return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
 class StoreChatViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.ListModelMixin):
     serializer_class = ChatSerializer
     authentication_classes = [CookieAuthentication]  # CookieAuthentication 적용
@@ -265,7 +263,7 @@ class StoreChatViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin, mixins.
 
     def get_queryset(self):
         store = self.kwargs.get("store_id")
-        queryset = Chat.objects.filter(store = store).order_by('date')
+        queryset = Chat.objects.filter(store=store).order_by('date')
         return queryset
 
     def perform_create(self, serializer):
@@ -277,7 +275,11 @@ class StoreChatViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin, mixins.
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(store=store, user=request.user)
-        return Response(serializer.data)
+
+        # 새로 생성한 채팅을 조회해서 반환
+        new_chat = Chat.objects.get(pk=serializer.instance.pk)
+        response_serializer = self.get_serializer(new_chat)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
 
 
