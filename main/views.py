@@ -5,13 +5,14 @@ from django.http import HttpResponse
 
 from .serializers import *
 from .models import *
+from accounts.authentication import CookieAuthentication
 from rest_framework.permissions import AllowAny
 
 from rest_framework.views import APIView
 from rest_framework import viewsets, mixins, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework.decorators import api_view, permission_classes, action, authentication_classes
 
 from wordcloud import WordCloud, ImageColorGenerator
 import matplotlib.pyplot as plt
@@ -27,6 +28,7 @@ class StoreViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Retrie
 
     queryset = Store.objects.all()
     serializer_class = StoreSerializer
+    authentication_classes = [CookieAuthentication]  # CookieAuthentication 적용
     permission_classes = [AllowAny]
 
     # 두 지점 간의 거리를 계산하는 함수
@@ -137,7 +139,8 @@ class ReviewViewSet(viewsets.GenericViewSet,
     mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, mixins.ListModelMixin):
     queryset = Review.objects.all().order_by('-updated_at')  # updated_at 필드를 기준으로 최신순 정렬
     serializer_class = ReviewSerializer
-    permission_classes = [AllowAny]
+    authentication_classes = [CookieAuthentication]  # CookieAuthentication 적용
+    permission_classes = [IsAuthenticated]
 
     def get_object(self):
         obj = super().get_object()
@@ -170,7 +173,8 @@ class ReviewViewSet(viewsets.GenericViewSet,
 class StoreReviewViewSet(viewsets.GenericViewSet,
     mixins.ListModelMixin, mixins.CreateModelMixin):
     serializer_class = ReviewSerializer
-    permission_classes = [AllowAny]
+    authentication_classes = [CookieAuthentication]  # CookieAuthentication 적용
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         store = self.kwargs.get("store_id")
@@ -204,7 +208,9 @@ class StoreReviewViewSet(viewsets.GenericViewSet,
         return Response(serializer.data)
     
 class ScrapedStoresListView(viewsets.GenericViewSet, mixins.ListModelMixin):
+    authentication_classes = [CookieAuthentication]  # CookieAuthentication 적용
     permission_classes = [IsAuthenticated]
+
     serializer_class = StoreSerializer
 
     def get_queryset(self):
@@ -213,7 +219,8 @@ class ScrapedStoresListView(viewsets.GenericViewSet, mixins.ListModelMixin):
         return scrapped_stores.values_list('store', flat=True)
 
 @api_view(['GET', 'POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
+@authentication_classes([CookieAuthentication])
 def board_read_create(request, store_id):
     store = get_object_or_404(Store, store_id=store_id)
 
@@ -233,7 +240,8 @@ def board_read_create(request, store_id):
 
 
 @api_view(['GET', 'POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
+@authentication_classes([CookieAuthentication])
 def chat_read_create(request, store_id):
     store = get_object_or_404(Store, store_id=store_id)
 

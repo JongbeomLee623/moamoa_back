@@ -28,6 +28,8 @@ from rest_framework import serializers
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponseRedirect
 
+from .authentication import CookieAuthentication
+
 BASE_URL = 'http://127.0.0.1:8000'
 KAKAO_CALLBACK_URI = BASE_URL + '/api/kakao/callback'
 # KAKAO_CALLBACK_URI = 'http://localhost:5173/App/Mainpage'
@@ -148,8 +150,10 @@ class KakaoLogoutView(APIView):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    authentication_classes = [CookieAuthentication]  # CookieAuthentication 적용
+    permission_classes = [IsAuthenticated]
 
-    @action(detail=False, methods=['GET'], permission_classes=[IsAuthenticated])
+    @action(detail=False, methods=['GET'])
     def current_user(self, request):
         user_serializer = self.serializer_class(request.user)
         return Response(user_serializer.data, status=status.HTTP_200_OK)
