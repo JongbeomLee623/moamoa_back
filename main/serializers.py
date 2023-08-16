@@ -80,11 +80,17 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     username = serializers.SerializerMethodField()
 
+    storename = serializers.SerializerMethodField()
+
     def get_username(self, instance):
         if instance.user is not None:
             return instance.user.nickname
         else:
             return "UnKnown"
+
+    def get_storename(self, instance):
+        if instance.store is not None:
+            return instance.store.name
 
     def get_images(self, instance):
         image = instance.image.all()
@@ -127,7 +133,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        fields = ['review_id','title','store','username','content','rating', 'images', 'created_at', 'updated_at']
+        fields = ['review_id','title','storename','username','content','rating', 'images', 'created_at', 'updated_at']
         read_only_fields = ['review_id','username','store', 'user', 'created_at', 'updated_at']
 
 class ReviewImageSerializer(serializers.ModelSerializer):
