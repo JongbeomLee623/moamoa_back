@@ -34,10 +34,11 @@ CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:8000',
     'http://127.0.0.1:5173',
     'http://localhost:5173',
-    'http://13.124.87.223',
-    'http://13.124.87.223:8000',
-    'http://13.124.87.223:5173',
-    'http://moamoa.site'
+    'http://13.209.178.19',
+    'http://13.209.178.19:8000',
+    'http://13.209.178.19:5173',
+    'http://moamoa.site',
+    
 ]
 
 
@@ -208,3 +209,5 @@ CORS_ALLOW_CREDENTIALS = True
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 # 사용자가 업로드한 파일을 모으는 곳
 MEDIA_URL = "/media/"
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
