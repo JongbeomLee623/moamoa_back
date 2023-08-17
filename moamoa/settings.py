@@ -26,18 +26,34 @@ for key, value in secrets.items():
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
+#!--- CORS ---! 중요 #
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_CREDENTIALS = True
+
 CORS_ALLOWED_ORIGINS = [
+    'http://127.0.0.1',
     'http://127.0.0.1:8000',
     'http://127.0.0.1:5173',
+
+    'http://localhost',
+    'http://localhost:8000',
     'http://localhost:5173',
+    
     'http://13.209.178.19',
     'http://13.209.178.19:8000',
     'http://13.209.178.19:5173',
+    
+    'http://13.209.111.199',
+    'http://13.209.111.199:8000',
+    'http://13.209.111.199:5173',
+    
     'http://moamoa.site',
+    'http://moamoa.site:8000',
+    'http://moamoa.site:5173',
     
 ]
 
@@ -202,9 +218,6 @@ ACCOUNT_AUTHENTICATION_METHOD = 'username'
 
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 
-#!--- CORS ---! 중요 #
-# CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_CREDENTIALS = True
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 # 사용자가 업로드한 파일을 모으는 곳
