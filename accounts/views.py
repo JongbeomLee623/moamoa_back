@@ -30,7 +30,7 @@ from django.http import HttpResponseRedirect
 
 from .authentication import CookieAuthentication
 
-BASE_URL = 'http://127.0.0.1:8000'
+BASE_URL = 'http://13.209.111.199'
 KAKAO_CALLBACK_URI = BASE_URL + '/api/kakao/callback'
 # KAKAO_CALLBACK_URI = 'http://localhost:5173/App/Mainpage'
 
