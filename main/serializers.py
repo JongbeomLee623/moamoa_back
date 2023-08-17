@@ -10,6 +10,13 @@ class StoreSerializer(serializers.ModelSerializer):
     reviews = serializers.SerializerMethodField()
     menus = serializers.SerializerMethodField()
     boards = serializers.SerializerMethodField()
+    scrap_status = serializers.SerializerMethodField()
+
+    def get_scrap_status(self, instance):
+        user = self.context.get('request').user
+        if user.is_authenticated:
+            return instance.scraps.filter(user=user).exists()
+        return False
 
     def get_reviews(self, instance):
         serializer = ReviewSerializer(instance=instance.reviews, many=True, context=self.context)
@@ -64,8 +71,8 @@ class StoreSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Store
-        fields = ['store_id','name','type','road_address','operation_time','store_num','store_other_data','boards','images','ratings','menus', 'reviews']
-        
+        fields = ['store_id','name','scrap_status','type','road_address','operation_time','store_num','store_other_data','boards','images','ratings','menus', 'reviews']
+
 
 class ImageSerializer(serializers.ModelSerializer):
     image = serializers.ImageField(use_url= True, required = False)
