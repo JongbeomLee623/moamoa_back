@@ -61,7 +61,6 @@ class StoreViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Retrie
         user_longitude = 127.0412415
         
         stores = Store.objects.all()
-
         nearby_stores = []  # 주변 가게들을 담을 리스트
 
         for store in stores:
@@ -76,7 +75,7 @@ class StoreViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Retrie
                     nearby_stores.append(store)
 
         queryset = nearby_stores[:20]
-        serializer = StoreSerializer(queryset, many=True)
+        serializer = StoreSerializer(queryset, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     @action(detail=True, methods=['POST'])
