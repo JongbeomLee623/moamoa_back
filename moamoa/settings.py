@@ -31,10 +31,13 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 CORS_ALLOWED_ORIGINS = [
-    #'http://192.168.1.9:8000',
     'http://127.0.0.1:8000',
     'http://127.0.0.1:5173',
     'http://localhost:5173',
+    'http://13.124.87.223',
+    'http://13.124.87.223:8000',
+    'http://13.124.87.223:5173',
+    'http://moamoa.site'
 ]
 
 
