@@ -52,7 +52,7 @@ CORS_ALLOWED_ORIGINS = [
     'http://13.209.111.199:5173',
     
     'http://moamoa.site',
-    'http://moamoa.site:8000',
+    'http://moamoa.site:3000',
     'http://moamoa.site:5173',
     
 ]
