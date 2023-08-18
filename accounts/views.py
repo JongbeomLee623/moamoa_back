@@ -117,7 +117,7 @@ def kakao_callback(request):
     access_token = str(refresh_token.access_token)
     
     #frontend_redirect_uri = 'http://localhost:5173/App/Mainpage',
-    frontend_redirect_uri = 'http://13.209.178.19:5173/App/Mainpage'
+    frontend_redirect_uri = 'http://13.209.111.199/App/Mainpage'
     #frontend_redirect_uri = 'http://13.209.111.199:5173/App/Mainpage'
     
     # frontend_redirect_uri = 'http://127.0.0.1:5173/App/Mainpage'
