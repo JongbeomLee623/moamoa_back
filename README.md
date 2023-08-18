@@ -34,12 +34,12 @@
 
 | 이름 | 포지션 | 깃허브 아이디 |
 | ------ | --- | --- |
-| 곽호은 | Front-end | hooooooni
-| 김동환 | Front-end | dhmr11
-| 윤수민 | Back-end |  sssumini
-| 윤혜정 | 기획/디자인 | Newnoon
-| 이종범 | Back-end | JongbeomLee623
-| 최준형 | 기획/디자인 | jae2022
+| 곽호은 | Front-end | [hooooooni](https://github.com/hooooooni)
+| 김동환 | Front-end | [dhmr11](https://github.com/dhmr11)
+| 윤수민 | Back-end |  [sssumini](https://github.com/sssumini)
+| 윤혜정 | 기획/디자인 | [Newnoon](https://github.com/Newnoon)
+| 이종범 | Back-end | [JongbeomLee623](https://github.com/JongbeomLee623)
+| 최준형 | 기획/디자인 | [jae2022](https://github.com/jae2022)
 
 
 <br>
