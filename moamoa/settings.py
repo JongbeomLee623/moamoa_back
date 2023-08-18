@@ -36,19 +36,19 @@ CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1',
-    'http://127.0.0.1:8000',
+    'http://127.0.0.1:3000',
     'http://127.0.0.1:5173',
 
     'http://localhost',
-    'http://localhost:8000',
+    'http://localhost:3000',
     'http://localhost:5173',
     
     'http://13.209.178.19',
-    'http://13.209.178.19:8000',
+    'http://13.209.178.19:3000',
     'http://13.209.178.19:5173',
     
     'http://13.209.111.199',
-    'http://13.209.111.199:8000',
+    'http://13.209.111.199:3000',
     'http://13.209.111.199:5173',
     
     'http://moamoa.site',
