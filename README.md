@@ -38,8 +38,7 @@
 | 김동환 | Front-end | dhmr11
 | 윤수민 | Back-end |  sssumini
 | 윤혜정 | 기획/디자인 | Newnoon
-| 이종범 | Back-end | 
-JongbeomLee623
+| 이종범 | Back-end | JongbeomLee623
 | 최준형 | 기획/디자인 | jae2022
 
 
