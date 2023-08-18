@@ -152,7 +152,7 @@ def kakao_callback(request):
 #         return Response({'message': 'Invalid Kakao token.'}, status=status.HTTP_400_BAD_REQUEST)
 
 class KakaoLogoutView(APIView):
-    def post(self, request):
+    def get(self, request):
         rest_api_key = getattr(settings, 'KAKAO_APP_ADMIN_KEY')
         if rest_api_key:
             user = request.user
